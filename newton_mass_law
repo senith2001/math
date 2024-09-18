@@ -1,0 +1,153 @@
+import pygame
+import math
+
+pygame.init()
+screen = pygame.display.set_mode((1280,720))
+clock = pygame.time.Clock()
+running = True
+G = 1
+M1 =10000000
+M2 =5000
+Rx = 200
+Ry = 200
+t =0
+x=None
+y = None
+x0 = None
+y0 = None
+grabbed = False
+released = False
+lx = None
+ly = None
+vlist = []
+disturbed = False
+clicked = True
+k1 = -2*G*M1
+k2 = G*M1
+k= None
+v = (G*M1/((Rx**2 + Ry**2)**(1/2)))**(1/2)
+vf = 0
+R = (Rx**2 + Ry**2)**(1/2)
+R0 = ((Rx**2 + Ry**2)**(1/2))
+k= (v**2-2*G*M1/R)
+o = math.atan(Ry/Rx)
+alpha = 0
+applyFoce = False
+forceapplied = False
+wentToCenter = False
+path = []
+landed = False
+neutral = True
+
+while(running):
+    dt = clock.tick(60)  /1000
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == (pygame.MOUSEBUTTONDOWN  ):
+            x,y = pygame.mouse.get_pos()
+        if event.type == pygame.MOUSEBUTTONUP:
+            if disturbed:
+                neutral = False
+                released = True
+                disturbed = False
+                applyFoce = True
+            # x0 = None
+            # y0 = None
+            
+            # if disturbed:
+            #     applyFoce = True
+            #     x0,y0 = pygame.mouse.get_pos()
+                #disturbed = False
+                #released = True
+        if event.type == pygame.MOUSEMOTION:
+            if disturbed:
+                x0,y0 = pygame.mouse.get_pos()
+    t+= dt
+    screen.fill("black")
+    pygame.draw.circle(screen,(102,51,0),(640,360),100)
+    pygame.draw.circle(screen,(204,102,0),(620,390),25) 
+    
+    # if not forceapplied:
+    if neutral:   
+        Sx = -R*math.sin(v*t/R)
+        Sy = R*math.cos(v*t/R)
+        o = math.atan(Sy/Sx)
+    if disturbed:
+        x0,y0 = pygame.mouse.get_pos()
+        
+        if x0 is not None and y0 is not None and not released:
+            pygame.draw.line(screen,(255,255,255),(x0,y0),(640+Sx,360+Sy),2)
+           
+            lx = x0 - (640+Sx)
+            ly = y0 - (360 +Sy)
+            print(lx,ly)
+            A = (lx**2 + ly**2)**(1/2)
+            B = ((x0-640)**2 + (y0 - 360)**2)**(1/2)
+            C = R
+            alpha = math.degrees(math.acos((A**2 + C**2 - B**2)/(2*A*C)))
+            print("total force angle: ",alpha)
+            if lx is not None and ly is not None :
+                landed = False
+                vf =((lx/ly)/(abs(lx/ly))*1*((lx**2+ly**2)**(1/2))) 
+                print("applied velocity:",vf)
+            v = (v**2+vf**2+2*v*vf*math.sin(alpha))**(1/2)
+            
+            
+    
+        
+        if released:
+
+
+            print ("v is :",v)
+            k= (v**2-2*G*M1/R)
+            h = 0.0001
+            beta = math.degrees(math.atan((v*math.cos(alpha))/(vf + v*math.sin(alpha)))) - alpha
+
+            if (beta > (math.pi/2)) or (beta < (3*math.pi/2)) :
+        
+                R = R0 - h*((k*(R0**2) -k1*R0+k2)/R0)**(1/2)
+                print("R is increasing",R)
+            else :
+                
+                R = R0 + h*((k*(R0**2) -k1*R0+k2)/R0)**(1/2)
+                print("R is decreasing",R)
+
+            d0 = (k2/R**3)**(1/2)*dt
+
+            o -= d0
+            print("angle of circular motion is: ",o)
+        
+    if not landed:
+        Sx = -R*math.sin(o)
+        Sy = R*math.cos(o)
+
+
+    # if lx is not None and ly is not None :
+    #    landed = False
+    #    vf =((lx/ly)/(abs(lx/ly))*1*((lx**2+ly**2)**(1/2))) 
+    #    print("applied velocity:",vf)
+   
+   
+    path.append([640+Sx,360+Sy])
+
+   
+
+    for p in path:
+        pygame.draw.circle(screen,(255,255,255),(p[0],p[1]),2)
+    if landed and path:
+        path.pop(0)
+
+    circle = pygame.draw.circle(screen,(204,204,0),(640+Sx,360+Sy),25)
+
+    if x is not None and y is not None and clicked and circle.collidepoint((x,y)):
+        
+        x = None
+        y = None
+        released = False
+        disturbed= True
+        
+  
+    
+    pygame.display.flip()
+pygame.quit()
