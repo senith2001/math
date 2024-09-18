@@ -1,0 +1,57 @@
+import pygame
+import math
+#============================================================================================
+#SCREEN PARAMETERS
+screen_width=1280
+screen_height = 720
+pygame.init()
+clock = pygame.time.Clock()
+pygame.display.set_caption("2022 AL MATHS ACCELERATION PROBLEM")
+screen = pygame.display.set_mode((screen_width,screen_height))
+FPS = 60
+running = True
+
+#--------------------------------------------------------------------------------------------
+#polygon parameters
+a = 200
+#bottom left coordinate
+bl = [400,600]
+#mid top coordiante
+mt = [bl[0]+a,bl[1]-2*a*math.sin(math.pi/3)]
+#mid second coordinate
+ms = [bl[0]+3*a/2,bl[1]-a*math.sin(math.pi/3)]
+#bottom right coordinate
+br = [bl[0]+5*a/2,bl[1]]
+#top right coordinate
+tr =[bl[0]+5*a/2,bl[1]-a*math.sin(math.pi/3)]
+#--------------------------------------------------------------------------------------------
+
+#--------------------------------------------------------------------------------------------
+#floor parameters
+height = 600
+rect = pygame.Rect(0,height,screen_width,screen_height-height)
+
+
+#============================================================================================
+#POINT E
+Eradius = 10
+
+#=============================================================================================
+#ring D
+Dradius = Eradius*2*math.cos(math.pi/6)/2
+
+
+while running:
+    dt = clock.tick(FPS) /1000
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    
+    screen.fill("red")
+    pygame.draw.rect(screen,(59, 11, 8),rect)
+    pygame.draw.polygon(screen,(117, 55, 5),[bl,mt,ms,tr,br],0)
+    pygame.draw.circle(screen,(16, 71, 38),(mt[0],mt[1]-Eradius),Eradius)
+    pygame.draw.circle(screen,(16, 71, 38),(ms[0]+Eradius*math.cos(math.pi/3),ms[1]-Eradius*math.sin(math.pi/3)),Dradius,2)
+    pygame.display.flip()
+
+pygame.quit()
